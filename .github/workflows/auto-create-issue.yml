@@ -1,16 +1,46 @@
-name: auto create issue
+name: Create Bug Report Issue
 
-on: workflow_dispatch 
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: 'Bug Title'
+        required: true
+        default: '[Bug] '
+      description:
+        description: 'A clear and concise description of what the bug is.'
+        required: true
+      steps_to_reproduce:
+        description: 'Steps to reproduce the behavior.'
+        required: true
+      expected_result:
+        description: 'A clear and concise description of what you expected to happen.'
+        required: true
+      environment:
+        description: 'The environment where the bug occurred (e.g., OS, Browser, Version).'
+        required: false
 
 jobs:
   open_issue:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      issues: write 
-    steps: 
-      - run : |
-          gh issue --repo  ${{github.repository}} \
-          create --title "Issue title" --body "Issue body"
-        env : 
-          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      issues: write
+    steps:
+      - name: Create bug report issue
+        run: |
+          gh issue create --repo ${{ github.repository }} \
+            --title "${{ github.event.inputs.title }}" \
+            --body "### Description
+          ${{ github.event.inputs.description }}
+
+          ### Steps to reproduce
+          ${{ github.event.inputs.steps_to_reproduce }}
+
+          ### Expected result
+          ${{ github.event.inputs.expected_result }}
+
+          ### Environment
+          ${{ github.event.inputs.environment }}" \
+            --label "bug"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
